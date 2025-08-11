@@ -30,13 +30,28 @@ const Checkout = () => {
     setMessage('');
 
     try {
+      // Get the current origin (e.g., "http://localhost:3000" or "https://your-domain.com")
+      const currentOrigin = window.location.origin;
+
+      // Construct the success and failure redirect URLs
+      // You should have React Router or similar setup for these paths
+      const successUrl = `${currentOrigin}/payment-success`;
+      const failureUrl = `${currentOrigin}/payment-failure`;
+
+      // Combine form data with redirect URLs
+      const payload = {
+        ...formData,
+        success_redirect_url: successUrl,
+        failure_redirect_url: failureUrl,
+      };
+
       // Step 1: Call the Vercel serverless function to create the payment link
       const response = await fetch('/api/create-payment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload), // Send the payload with redirect URLs
       });
 
       if (!response.ok) {
