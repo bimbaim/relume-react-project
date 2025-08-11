@@ -5,38 +5,30 @@
 // Ensure you have installed xendit-node: npm install xendit-node
 import Xendit from 'xendit-node';
 
-let xenditInstance; // Declare outside to potentially reuse or for error handling
-
-try {
-  // Initialize Xendit with your secret key from environment variables
-  // IMPORTANT: Set XENDIT_SECRET_KEY in your Vercel project's Environment Variables
-  if (!process.env.XENDIT_SECRET_KEY) {
-    console.error('ERROR: XENDIT_SECRET_KEY is not set in environment variables!');
-    // Throw an error early if the key is missing to prevent undefined behavior
-    throw new Error('XENDIT_SECRET_KEY is not configured.');
-  }
-  xenditInstance = new Xendit({
-    secretKey: process.env.XENDIT_SECRET_KEY,
-  });
-  console.log('Xendit instance initialized successfully.');
-} catch (initError) {
-  console.error('Failed to initialize Xendit instance:', initError);
-  // Re-throw to ensure the handler catches this initialization failure
-  throw initError;
-}
-
-
-const { Invoice } = xenditInstance; // Use the initialized instance
-const invoiceClient = new Invoice({});
-
 export default async function handler(req, res) {
   // Only allow POST requests
   if (req.method !== 'POST') {
-    // Ensure 405 response is also JSON
     return res.status(405).json({ message: 'Method Not Allowed', code: 'METHOD_NOT_ALLOWED' });
   }
 
+  let xenditInstance;
+  let invoiceClient;
+
   try {
+    // Initialize Xendit within the handler to catch initialization errors
+    if (!process.env.XENDIT_SECRET_KEY) {
+      console.error('ERROR: XENDIT_SECRET_KEY is not set in environment variables!');
+      return res.status(500).json({ message: 'Server configuration error: Xendit API key is missing.', code: 'SERVER_CONFIG_ERROR' });
+    }
+
+    xenditInstance = new Xendit({
+      secretKey: process.env.XENDIT_SECRET_KEY,
+    });
+    console.log('Xendit instance initialized successfully within handler.');
+
+    // CORRECTED: Access Invoice directly via xenditInstance
+    invoiceClient = new xenditInstance.Invoice({});
+
     const { customerName, email, amount } = req.body;
 
     // Basic validation
