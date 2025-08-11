@@ -17,7 +17,8 @@ const invoiceClient = new Invoice({});
 export default async function handler(req, res) {
   // Only allow POST requests
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed' });
+    // Ensure 405 response is also JSON
+    return res.status(405).json({ message: 'Method Not Allowed', code: 'METHOD_NOT_ALLOWED' });
   }
 
   try {
@@ -25,7 +26,7 @@ export default async function handler(req, res) {
 
     // Basic validation
     if (!customerName || !email || !amount) {
-      return res.status(400).json({ message: 'Missing required fields: customerName, email, or amount.' });
+      return res.status(400).json({ message: 'Missing required fields: customerName, email, or amount.', code: 'MISSING_FIELDS' });
     }
 
     // Generate a unique external ID for the invoice
@@ -71,12 +72,16 @@ export default async function handler(req, res) {
     console.error('Error creating Xendit payment link:', error);
     // Provide a more generic error message to the client
     let errorMessage = 'An unexpected error occurred. Please try again later.';
+    let errorCode = 'UNKNOWN_ERROR';
+
     if (error.code && error.message) {
       // Xendit API errors often have a code and message
-      errorMessage = `Xendit Error: ${error.message} (Code: ${error.code})`;
+      errorMessage = `Xendit API Error: ${error.message}`;
+      errorCode = error.code;
     } else if (error.message) {
       errorMessage = error.message;
     }
-    return res.status(500).json({ message: errorMessage });
+    // Ensure 500 response is always JSON
+    return res.status(500).json({ message: errorMessage, code: errorCode });
   }
 }
