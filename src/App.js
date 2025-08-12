@@ -1,18 +1,15 @@
 // src/App.js
 
 import React from 'react';
-import './App.css'; // Keep the CSS import
+import './App.css'; 
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 
-// 1. Import your main page component
-// Make sure the path is correct based on where you placed it
+// Import your main page components
 import HomePage from './HomePage';
 import Checkout from './pages/Checkout';
 
-// You can also import and arrange individual components if you prefer
-// import Header26 from './components/Header26';
-// import Cta52 from './components/Cta52';
-// import Footer5 from './components/Footer5';
+// 1. Import the new HealthCheck component
+import HealthCheck from './components/HealthCheck';
 
 function App() {
   return (
@@ -31,9 +28,12 @@ function App() {
 
         <main className="flex-grow container mx-auto p-4 flex items-center justify-center">
           <Routes>
+            {/* Your existing routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/checkout" element={<Checkout />} />
-            {/* You can add more routes here as needed */}
+
+            {/* 2. Add the new route for the health check */}
+            <Route path="/health" element={<HealthCheck />} />
           </Routes>
         </main>
       </div>
