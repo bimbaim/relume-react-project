@@ -1,4 +1,3 @@
-// src/useSupabaseConnection.js
 import { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
 
@@ -10,23 +9,25 @@ const useSupabaseConnection = () => {
   useEffect(() => {
     const checkConnection = async () => {
       try {
-        // A simple query to a non-existent table to test the connection.
-        // If the connection is successful, the request will go through,
-        // and Supabase will respond with a 404 for the non-existent table.
-        // If the connection fails, the request itself will fail.
+        // Attempt to select from a table that doesn't exist
         const { error } = await supabase.from('test_connection').select('*');
-
-        if (error && error.code === 'PGRST116') {
-          // This specific error code indicates "The table 'test_connection' does not exist."
-          // This means the API is reachable and the connection is working.
+        
+        // --- THIS IS THE KEY LOGIC CHANGE ---
+        // A successful connection will result in a specific error message.
+        // We check for two possible error codes:
+        // 1. `PGRST116`: The PostgREST error for "relation does not exist".
+        // 2. `42P01`: The PostgreSQL error for "undefined_table".
+        // If either of these errors is present, the connection is good.
+        if (error && (error.code === 'PGRST116' || error.code === '42P01')) {
           setIsConnected(true);
         } else {
-          // Any other error (like network errors, auth issues) means the connection failed.
+          // Any other error (e.g., network failure, authentication issue)
+          // means the connection failed.
           setIsConnected(false);
           setError(error);
         }
       } catch (err) {
-        // Catch any other potential errors, e.g., network issues.
+        // Catch network-level errors
         setIsConnected(false);
         setError(err);
       } finally {
